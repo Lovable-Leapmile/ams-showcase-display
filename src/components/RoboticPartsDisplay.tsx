@@ -132,7 +132,7 @@ const RoboticPartsDisplay = () => {
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area - 80% height */}
       <div className="h-[80%] flex items-center justify-center p-6">
-        <div className="relative w-full h-full max-w-7xl">
+        <div className="relative w-full h-full">
           {/* TV Frame */}
           <div className="bg-slate-700 p-6 rounded-2xl shadow-2xl border-4 border-slate-600 h-full">
             {/* Screen */}
