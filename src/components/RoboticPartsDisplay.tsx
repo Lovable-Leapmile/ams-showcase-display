@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-
 interface Part {
   id: string;
   name: string;
@@ -120,7 +119,6 @@ const RoboticPartsDisplay = () => {
 
     return () => clearInterval(interval);
   }, [currentStation, currentPartIndex, stations, isLoading]);
-
   if (isLoading) {
     return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Initializing Display System...</div>
@@ -153,7 +151,7 @@ const RoboticPartsDisplay = () => {
       </div>
 
       {/* Station Indicators */}
-      <div className="p-4 lg:p-8 flex-shrink-0">
+      <div className="relative w-[98%] h-[100%]">
         <div className="w-full mx-auto">
           <div className="flex justify-between items-center space-x-2 lg:space-x-4">
             {stations.map(station => <div key={station.id} className={cn("flex flex-col items-center space-y-1 lg:space-y-2 transition-all duration-300 flex-1", currentStation === station.id ? "scale-105 lg:scale-110" : "scale-100")}>
