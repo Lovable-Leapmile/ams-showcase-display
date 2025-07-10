@@ -138,7 +138,7 @@ const RoboticPartsDisplay = () => {
             {/* Screen */}
             <div className="bg-slate-200 rounded-lg overflow-hidden relative h-full w-full">
               {displayPart ? <>
-                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill transition-opacity duration-500" />
+                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-contain transition-opacity duration-500" />
                   <div className="absolute inset-0" />
                   <div className="absolute bottom-6 left-6 text-white">
                     <h2 className="text-3xl xl:text-4xl font-bold mb-2">{displayPart.name}</h2>
@@ -158,6 +158,13 @@ const RoboticPartsDisplay = () => {
       {/* Station Indicators - 20% height */}
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
+          {/* Progress Indicators */}
+          {displayPart && <div className="mb-4 flex justify-center">
+              <div className="flex space-x-2">
+                {stations.find(s => s.id === currentStation)?.parts.map((_, index) => <div key={index} className={cn("w-3 h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-600")} />)}
+              </div>
+            </div>}
+
           <div className="flex justify-between items-center space-x-4">
             {stations.map(station => <div key={station.id} className={cn("flex flex-col items-center space-y-2 transition-all duration-300 flex-1", currentStation === station.id ? "scale-110" : "scale-100")}>
                 {/* Station Indicator */}
@@ -173,13 +180,6 @@ const RoboticPartsDisplay = () => {
                 </div>
               </div>)}
           </div>
-
-          {/* Progress Indicators */}
-          {displayPart && <div className="mt-4 flex justify-center">
-              <div className="flex space-x-2">
-                {stations.find(s => s.id === currentStation)?.parts.map((_, index) => <div key={index} className={cn("w-3 h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-600")} />)}
-              </div>
-            </div>}
         </div>
       </div>
     </div>;
