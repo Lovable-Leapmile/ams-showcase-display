@@ -126,8 +126,8 @@ const RoboticPartsDisplay = () => {
   }
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area */}
-      <div className="flex-1 flex items-center justify-center p-3 lg:p-8 px-0 py-[4px]">
-        <div className="relative w-[98%] h-[88%]max-w-7xl ">
+      <div className="relative w-[98%] h-[100%]flex-1 flex items-center justify-center p-3 lg:p-8 px-0 py-[4px]">
+        <div className="relative w-[98%] h-[100%]max-w-7xl ">
           {/* TV Frame */}
           <div className="bg-slate-700 p-1 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600 px-0 py-0">
             {/* Screen */}
@@ -151,8 +151,8 @@ const RoboticPartsDisplay = () => {
       </div>
 
       {/* Station Indicators */}
-      <div className="relative w-[98%] h-[15%]">
-        <div className="w-full mx-auto py-0">
+      <div className="relative w-[98%] h-[20%]">
+        <div className="relative w-[98%] h-[20%]">
           <div className="flex justify-between items-center space-x-2 lg:space-x-4">
             {stations.map(station => <div key={station.id} className={cn("flex flex-col items-center space-y-1 lg:space-y-2 transition-all duration-300 flex-1", currentStation === station.id ? "scale-105 lg:scale-110" : "scale-100")}>
                 {/* Station Indicator */}
