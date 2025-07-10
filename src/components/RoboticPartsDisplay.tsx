@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+
 interface Part {
   id: string;
   name: string;
   imageUrl: string;
   description?: string;
 }
+
 interface Station {
   id: string;
   name: string;
   parts: Part[];
 }
+
 const RoboticPartsDisplay = () => {
   // Sample data - in real app this would come from props or API
   const [stations, setStations] = useState<Station[]>([{
@@ -125,13 +128,13 @@ const RoboticPartsDisplay = () => {
       </div>;
   }
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
-      {/* Main Display Area */}
-      <div className="relative w-[98%] h-[100%]flex-1 flex items-center justify-center p-3 lg:p-8 px-0 py-[4px]">
-        <div className="relative w-[98%] h-[100%]max-w-7xl ">
+      {/* Main Display Area - 80% height */}
+      <div className="h-[80%] flex items-center justify-center p-3 lg:p-8 px-0 py-[4px]">
+        <div className="relative w-[98%] h-full max-w-7xl">
           {/* TV Frame */}
-          <div className="bg-slate-700 p-1 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600 px-0 py-0">
+          <div className="bg-slate-700 p-1 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600 px-0 py-0 h-full">
             {/* Screen */}
-            <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative">
+            <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative h-full">
               {displayPart ? <>
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-cover transition-opacity duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -150,9 +153,9 @@ const RoboticPartsDisplay = () => {
         </div>
       </div>
 
-      {/* Station Indicators */}
-      <div className="relative w-[98%] h-[20%]">
-        <div className="relative w-[98%] h-[20%]">
+      {/* Station Indicators - 20% height */}
+      <div className="h-[20%] p-3 lg:p-8 px-0 py-[4px] flex flex-col justify-center">
+        <div className="w-full">
           <div className="flex justify-between items-center space-x-2 lg:space-x-4">
             {stations.map(station => <div key={station.id} className={cn("flex flex-col items-center space-y-1 lg:space-y-2 transition-all duration-300 flex-1", currentStation === station.id ? "scale-105 lg:scale-110" : "scale-100")}>
                 {/* Station Indicator */}
@@ -170,7 +173,7 @@ const RoboticPartsDisplay = () => {
           </div>
 
           {/* Progress Indicators */}
-          {displayPart && <div className="mt-4 lg:mt-6 flex justify-center py-0 my-[8px]">
+          {displayPart && <div className="mt-2 lg:mt-4 flex justify-center">
               <div className="flex space-x-1 lg:space-x-2">
                 {stations.find(s => s.id === currentStation)?.parts.map((_, index) => <div key={index} className={cn("w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-600")} />)}
               </div>
@@ -179,4 +182,5 @@ const RoboticPartsDisplay = () => {
       </div>
     </div>;
 };
+
 export default RoboticPartsDisplay;
