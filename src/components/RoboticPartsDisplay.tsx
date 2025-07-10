@@ -139,7 +139,7 @@ const RoboticPartsDisplay = () => {
             <div className="bg-slate-200 rounded-lg overflow-hidden relative h-full w-full">
               {displayPart ? <>
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-contain transition-opacity duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute inset-0" />
                   <div className="absolute bottom-6 left-6 text-white">
                     <h2 className="text-3xl xl:text-4xl font-bold mb-2">{displayPart.name}</h2>
                     <p className="text-lg xl:text-xl opacity-90">Currently displaying at {stations.find(s => s.id === currentStation)?.name}</p>
