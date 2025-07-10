@@ -170,7 +170,7 @@ const RoboticPartsDisplay = () => {
           </div>
 
           {/* Progress Indicators */}
-          {displayPart && <div className="mt-4 lg:mt-6 flex justify-center">
+          {displayPart && <div className="mt-4 lg:mt-6 flex justify-center py-0 my-[9px]">
               <div className="flex space-x-1 lg:space-x-2">
                 {stations.find(s => s.id === currentStation)?.parts.map((_, index) => <div key={index} className={cn("w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-600")} />)}
               </div>
