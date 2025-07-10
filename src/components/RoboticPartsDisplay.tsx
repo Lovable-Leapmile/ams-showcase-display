@@ -122,19 +122,19 @@ const RoboticPartsDisplay = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Initializing Display System...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="relative w-full max-w-6xl">
+      <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
+        <div className="relative w-[90%] max-w-7xl">
           {/* TV Frame */}
-          <div className="bg-slate-700 p-6 rounded-2xl shadow-2xl border-4 border-slate-600">
+          <div className="bg-slate-700 p-3 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600">
             {/* Screen */}
             <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative">
               {displayPart ? (
@@ -145,97 +145,88 @@ const RoboticPartsDisplay = () => {
                     className="w-full h-full object-cover transition-opacity duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-6 left-6 text-white">
-                    <h2 className="text-3xl font-bold mb-2">{displayPart.name}</h2>
-                    <p className="text-lg opacity-90">Currently displaying at {stations.find(s => s.id === currentStation)?.name}</p>
+                  <div className="absolute bottom-3 lg:bottom-6 left-3 lg:left-6 text-white">
+                    <h2 className="text-xl lg:text-3xl xl:text-4xl font-bold mb-1 lg:mb-2">{displayPart.name}</h2>
+                    <p className="text-sm lg:text-lg xl:text-xl opacity-90">Currently displaying at {stations.find(s => s.id === currentStation)?.name}</p>
                   </div>
                 </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center text-slate-600">
-                    <div className="text-6xl font-bold mb-4">NO PARTS</div>
-                    <div className="text-2xl">Waiting for parts to be loaded...</div>
+                    <div className="text-3xl lg:text-6xl xl:text-7xl font-bold mb-2 lg:mb-4">NO PARTS</div>
+                    <div className="text-lg lg:text-2xl xl:text-3xl">Waiting for parts to be loaded...</div>
                   </div>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Station Name Display */}
-          {displayPart && (
-            <div className="mt-6 flex justify-center">
-              <div className="bg-slate-700 px-8 py-4 rounded-lg border-2 border-slate-600 shadow-lg">
-                <div className="text-white text-2xl font-bold tracking-wider">
-                  {stations.find(s => s.id === currentStation)?.name}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Station Indicators */}
-      <div className="p-8">
-        <div className="flex justify-center space-x-4">
-          {stations.map((station) => (
-            <div
-              key={station.id}
-              className={cn(
-                "flex flex-col items-center space-y-2 transition-all duration-300",
-                currentStation === station.id ? "scale-110" : "scale-100"
-              )}
-            >
-              {/* Station Indicator */}
+      <div className="p-4 lg:p-8 flex-shrink-0">
+        <div className="w-[90%] mx-auto">
+          <div className="flex justify-between items-center space-x-2 lg:space-x-4">
+            {stations.map((station) => (
               <div
+                key={station.id}
                 className={cn(
-                  "w-16 h-16 rounded-lg flex items-center justify-center text-2xl font-bold transition-all duration-300 border-2",
-                  currentStation === station.id
-                    ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50"
-                    : station.parts.length > 0
-                    ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500"
-                    : "bg-slate-800 text-slate-500 border-slate-700"
+                  "flex flex-col items-center space-y-1 lg:space-y-2 transition-all duration-300 flex-1",
+                  currentStation === station.id ? "scale-105 lg:scale-110" : "scale-100"
                 )}
               >
-                {station.id}
-              </div>
-              
-              {/* Parts Count Indicator */}
-              <div className="text-center">
+                {/* Station Indicator */}
                 <div
                   className={cn(
-                    "text-sm font-medium",
+                    "w-12 h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-lg lg:text-2xl xl:text-3xl font-bold transition-all duration-300 border-2",
                     currentStation === station.id
-                      ? "text-teal-400"
+                      ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50"
                       : station.parts.length > 0
-                      ? "text-slate-300"
-                      : "text-slate-600"
+                      ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500"
+                      : "bg-slate-800 text-slate-500 border-slate-700"
                   )}
                 >
-                  {station.parts.length} {station.parts.length === 1 ? 'part' : 'parts'}
+                  {station.id}
+                </div>
+                
+                {/* Parts Count Indicator */}
+                <div className="text-center">
+                  <div
+                    className={cn(
+                      "text-xs lg:text-sm xl:text-base font-medium",
+                      currentStation === station.id
+                        ? "text-teal-400"
+                        : station.parts.length > 0
+                        ? "text-slate-300"
+                        : "text-slate-600"
+                    )}
+                  >
+                    {station.parts.length} {station.parts.length === 1 ? 'part' : 'parts'}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Progress Indicators */}
-        {displayPart && (
-          <div className="mt-6 flex justify-center">
-            <div className="flex space-x-2">
-              {stations.find(s => s.id === currentStation)?.parts.map((_, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    "w-3 h-3 rounded-full transition-all duration-300",
-                    index === currentPartIndex
-                      ? "bg-teal-400 shadow-lg shadow-teal-400/50"
-                      : "bg-slate-600"
-                  )}
-                />
-              ))}
-            </div>
+            ))}
           </div>
-        )}
+
+          {/* Progress Indicators */}
+          {displayPart && (
+            <div className="mt-4 lg:mt-6 flex justify-center">
+              <div className="flex space-x-1 lg:space-x-2">
+                {stations.find(s => s.id === currentStation)?.parts.map((_, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-all duration-300",
+                      index === currentPartIndex
+                        ? "bg-teal-400 shadow-lg shadow-teal-400/50"
+                        : "bg-slate-600"
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
