@@ -126,7 +126,7 @@ const RoboticPartsDisplay = () => {
   }
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area */}
-      <div className="flex-1 flex items-center justify-center p-3 lg:p-8 px-0 py-0">
+      <div className="flex-1 flex items-center justify-center p-3 lg:p-8 px-0 py-[4px]">
         <div className="relative w-[98%] h-[88%]max-w-7xl ">
           {/* TV Frame */}
           <div className="bg-slate-700 p-1 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600 px-0 py-0">
@@ -152,7 +152,7 @@ const RoboticPartsDisplay = () => {
 
       {/* Station Indicators */}
       <div className="relative w-[98%] h-[15%]">
-        <div className="w-full mx-auto">
+        <div className="w-full mx-auto py-0">
           <div className="flex justify-between items-center space-x-2 lg:space-x-4">
             {stations.map(station => <div key={station.id} className={cn("flex flex-col items-center space-y-1 lg:space-y-2 transition-all duration-300 flex-1", currentStation === station.id ? "scale-105 lg:scale-110" : "scale-100")}>
                 {/* Station Indicator */}
@@ -170,7 +170,7 @@ const RoboticPartsDisplay = () => {
           </div>
 
           {/* Progress Indicators */}
-          {displayPart && <div className="mt-4 lg:mt-6 flex justify-center py-0 my-[3px]">
+          {displayPart && <div className="mt-4 lg:mt-6 flex justify-center py-0 my-[8px]">
               <div className="flex space-x-1 lg:space-x-2">
                 {stations.find(s => s.id === currentStation)?.parts.map((_, index) => <div key={index} className={cn("w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-600")} />)}
               </div>
