@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -128,32 +129,32 @@ const RoboticPartsDisplay = () => {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
       {/* Main Display Area */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full h-full max-w-7xl max-h-full">
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="relative w-full max-w-6xl">
           {/* TV Frame */}
-          <div className="bg-slate-700 p-3 sm:p-4 lg:p-6 rounded-2xl shadow-2xl border-4 border-slate-600 h-full flex flex-col">
+          <div className="bg-slate-700 p-6 rounded-2xl shadow-2xl border-4 border-slate-600">
             {/* Screen */}
-            <div className="flex-1 bg-slate-200 rounded-lg overflow-hidden relative">
+            <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative">
               {displayPart ? (
                 <>
                   <img
                     src={displayPart.imageUrl}
                     alt={displayPart.name}
-                    className="w-[90%] h-full object-contain mx-auto transition-opacity duration-500"
+                    className="w-full h-full object-cover transition-opacity duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                  <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 text-white">
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">{displayPart.name}</h2>
-                    <p className="text-sm sm:text-base lg:text-lg opacity-90">Currently displaying at {stations.find(s => s.id === currentStation)?.name}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-6 left-6 text-white">
+                    <h2 className="text-3xl font-bold mb-2">{displayPart.name}</h2>
+                    <p className="text-lg opacity-90">Currently displaying at {stations.find(s => s.id === currentStation)?.name}</p>
                   </div>
                 </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center text-slate-600">
-                    <div className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">NO PARTS</div>
-                    <div className="text-lg sm:text-xl lg:text-2xl">Waiting for parts to be loaded...</div>
+                    <div className="text-6xl font-bold mb-4">NO PARTS</div>
+                    <div className="text-2xl">Waiting for parts to be loaded...</div>
                   </div>
                 </div>
               )}
@@ -162,9 +163,9 @@ const RoboticPartsDisplay = () => {
 
           {/* Station Name Display */}
           {displayPart && (
-            <div className="mt-4 sm:mt-6 flex justify-center">
-              <div className="bg-slate-700 px-6 sm:px-8 py-3 sm:py-4 rounded-lg border-2 border-slate-600 shadow-lg">
-                <div className="text-white text-lg sm:text-xl lg:text-2xl font-bold tracking-wider">
+            <div className="mt-6 flex justify-center">
+              <div className="bg-slate-700 px-8 py-4 rounded-lg border-2 border-slate-600 shadow-lg">
+                <div className="text-white text-2xl font-bold tracking-wider">
                   {stations.find(s => s.id === currentStation)?.name}
                 </div>
               </div>
@@ -174,8 +175,8 @@ const RoboticPartsDisplay = () => {
       </div>
 
       {/* Station Indicators */}
-      <div className="p-4 sm:p-6 lg:p-8 flex-shrink-0">
-        <div className="flex justify-center space-x-2 sm:space-x-4">
+      <div className="p-8">
+        <div className="flex justify-center space-x-4">
           {stations.map((station) => (
             <div
               key={station.id}
@@ -187,7 +188,7 @@ const RoboticPartsDisplay = () => {
               {/* Station Indicator */}
               <div
                 className={cn(
-                  "w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-lg flex items-center justify-center text-lg sm:text-xl lg:text-2xl font-bold transition-all duration-300 border-2",
+                  "w-16 h-16 rounded-lg flex items-center justify-center text-2xl font-bold transition-all duration-300 border-2",
                   currentStation === station.id
                     ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50"
                     : station.parts.length > 0
@@ -202,7 +203,7 @@ const RoboticPartsDisplay = () => {
               <div className="text-center">
                 <div
                   className={cn(
-                    "text-xs sm:text-sm font-medium",
+                    "text-sm font-medium",
                     currentStation === station.id
                       ? "text-teal-400"
                       : station.parts.length > 0
@@ -219,13 +220,13 @@ const RoboticPartsDisplay = () => {
 
         {/* Progress Indicators */}
         {displayPart && (
-          <div className="mt-4 sm:mt-6 flex justify-center">
+          <div className="mt-6 flex justify-center">
             <div className="flex space-x-2">
               {stations.find(s => s.id === currentStation)?.parts.map((_, index) => (
                 <div
                   key={index}
                   className={cn(
-                    "w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300",
+                    "w-3 h-3 rounded-full transition-all duration-300",
                     index === currentPartIndex
                       ? "bg-teal-400 shadow-lg shadow-teal-400/50"
                       : "bg-slate-600"
