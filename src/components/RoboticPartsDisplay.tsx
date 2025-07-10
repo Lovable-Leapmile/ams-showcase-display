@@ -126,10 +126,10 @@ const RoboticPartsDisplay = () => {
   }
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area */}
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
+      <div className="flex-1 flex items-center justify-center p-3 lg:p-8">
         <div className="relative w-[98%] h-[88%]max-w-7xl ">
           {/* TV Frame */}
-          <div className="bg-slate-700 p-3 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600">
+          <div className="bg-slate-700 p-1 lg:p-6 rounded-xl lg:rounded-2xl shadow-2xl border-2 lg:border-4 border-slate-600">
             {/* Screen */}
             <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden relative">
               {displayPart ? <>
