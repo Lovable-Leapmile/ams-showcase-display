@@ -34,7 +34,7 @@ const RoboticPartsDisplay = () => {
     parts: [{
       id: 'b1',
       name: 'Robot Arm',
-      imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1920&h=1080&fit=crop'
+      imageUrl: 'https://ams-bucket.blr1.cdn.digitaloceanspaces.com/tv-screen.png'
     }]
   }, {
     id: 'C',
