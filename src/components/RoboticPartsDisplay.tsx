@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-
 interface Part {
   id: string;
   name: string;
   imageUrl: string;
   description?: string;
 }
-
 interface Station {
   id: string;
   name: string;
   parts: Part[];
 }
-
 const RoboticPartsDisplay = () => {
   // Sample data - in real app this would come from props or API
   const [stations, setStations] = useState<Station[]>([{
@@ -122,13 +119,11 @@ const RoboticPartsDisplay = () => {
 
     return () => clearInterval(interval);
   }, [currentStation, currentPartIndex, stations, isLoading]);
-
   if (isLoading) {
     return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Initializing Display System...</div>
       </div>;
   }
-
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area - 80% height */}
       <div className="h-[80%] flex items-center justify-center p-6">
@@ -136,7 +131,7 @@ const RoboticPartsDisplay = () => {
           {/* TV Frame */}
           <div className="bg-slate-700 p-6 rounded-2xl shadow-2xl border-4 border-slate-600 h-full">
             {/* Screen */}
-            <div className="bg-slate-200 rounded-lg overflow-hidden relative h-full w-full">
+            <div className="rounded-lg overflow-hidden relative h-full w-full bg-white">
               {displayPart ? <>
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-contain transition-opacity duration-500" />
                   <div className="absolute inset-0" />
@@ -184,5 +179,4 @@ const RoboticPartsDisplay = () => {
       </div>
     </div>;
 };
-
 export default RoboticPartsDisplay;
