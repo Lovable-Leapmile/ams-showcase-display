@@ -133,7 +133,7 @@ const RoboticPartsDisplay = () => {
             {/* Screen */}
             <div className="rounded-lg overflow-hidden relative h-full w-full bg-white">
               {displayPart ? <>
-                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-contain transition-opacity duration-500" />
+                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill transition-opacity duration-500" />
                   <div className="absolute inset-0" />
                   <div className="absolute bottom-6 left-6 text-white">
                     <h2 className="text-3xl xl:text-4xl font-bold mb-2">{displayPart.name}</h2>
