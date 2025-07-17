@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ const RoboticPartsDisplay = () => {
   const [displayPart, setDisplayPart] = useState<Part | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showErrorScreen, setShowErrorScreen] = useState(false);
 
   const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
 
@@ -72,51 +74,12 @@ const RoboticPartsDisplay = () => {
       console.log('Transformed stations:', transformedStations);
       setStations(transformedStations);
       setError(null);
+      setShowErrorScreen(false);
     } catch (err) {
       console.error('Error fetching stations:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch stations');
-      
-      // Fallback to mock data when API fails
-      const mockStations: Station[] = [
-        {
-          id: '1',
-          name: 'A',
-          tray_id: 'T001',
-          parts: [{
-            id: '1-part',
-            name: 'Robotic Arm Component',
-            imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop'
-          }]
-        },
-        {
-          id: '2',
-          name: 'B',
-          tray_id: 'T002',
-          parts: [{
-            id: '2-part',
-            name: 'Motor Assembly',
-            imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&h=1080&fit=crop'
-          }]
-        },
-        {
-          id: '3',
-          name: 'C',
-          tray_id: null,
-          parts: []
-        },
-        {
-          id: '4',
-          name: 'D',
-          tray_id: 'T004',
-          parts: [{
-            id: '4-part',
-            name: 'Sensor Module',
-            imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&h=1080&fit=crop'
-          }]
-        }
-      ];
-      console.log('Using fallback mock data due to API error');
-      setStations(mockStations);
+      setShowErrorScreen(true);
+      setStations([]);
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +103,7 @@ const RoboticPartsDisplay = () => {
 
   // Initialize display with first available part
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || showErrorScreen) return;
     
     const stationsWithParts = getStationsWithParts();
     if (stationsWithParts.length > 0) {
@@ -149,11 +112,11 @@ const RoboticPartsDisplay = () => {
       setCurrentPartIndex(0);
       setDisplayPart(firstStation.parts[0]);
     }
-  }, [stations, isLoading]);
+  }, [stations, isLoading, showErrorScreen]);
 
   // Automatic cycling logic
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || showErrorScreen) return;
     const stationsWithParts = getStationsWithParts();
     if (stationsWithParts.length === 0) {
       setDisplayPart(null);
@@ -190,12 +153,25 @@ const RoboticPartsDisplay = () => {
     }, 5000); // 5 seconds
 
     return () => clearInterval(interval);
-  }, [currentStation, currentPartIndex, stations, isLoading]);
+  }, [currentStation, currentPartIndex, stations, isLoading, showErrorScreen]);
 
   if (isLoading) {
     return (
       <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading stations...</div>
+      </div>
+    );
+  }
+
+  if (showErrorScreen) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center" style={{ backgroundColor: '#DBEAEA' }}>
+        <img 
+          src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/LOGO_AMS.png" 
+          alt="AMS Logo" 
+          className="mb-6 max-w-xs max-h-48 object-contain"
+        />
+        <p className="text-gray-700 text-lg">Network Error or No data found</p>
       </div>
     );
   }
@@ -222,11 +198,6 @@ const RoboticPartsDisplay = () => {
                     <p className="text-lg xl:text-xl opacity-90">
                       Currently displaying at {stations.find(s => s.id === currentStation)?.name}
                     </p>
-                    {error && (
-                      <p className="text-sm text-yellow-400 mt-2">
-                        Using fallback data (API connection failed)
-                      </p>
-                    )}
                   </div>
                 </>
               ) : (
@@ -234,11 +205,6 @@ const RoboticPartsDisplay = () => {
                   <div className="text-center text-slate-600">
                     <div className="text-6xl xl:text-7xl font-bold mb-4">NO PARTS</div>
                     <div className="text-2xl xl:text-3xl">Waiting for parts to be loaded...</div>
-                    {error && (
-                      <div className="text-lg text-yellow-600 mt-4">
-                        API Error: {error}
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
