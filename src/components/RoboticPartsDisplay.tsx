@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -17,10 +16,18 @@ interface Station {
 }
 
 interface ApiStation {
-  id: string;
-  name: string;
+  id: number;
+  slot_name: string;
   tray_id: string | null;
   // Add other fields as needed based on API response
+}
+
+interface ApiResponse {
+  status: string;
+  records: ApiStation[];
+  count: number;
+  statusbool: boolean;
+  ok: boolean;
 }
 
 const RoboticPartsDisplay = () => {
@@ -48,21 +55,22 @@ const RoboticPartsDisplay = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const apiStations: ApiStation[] = await response.json();
-        console.log('Fetched stations:', apiStations);
+        const apiResponse: ApiResponse = await response.json();
+        console.log('Fetched API response:', apiResponse);
 
         // Transform API data to match our Station interface
-        const transformedStations: Station[] = apiStations.map(station => ({
-          id: station.id,
-          name: station.name,
+        const transformedStations: Station[] = apiResponse.records.map(station => ({
+          id: station.id.toString(),
+          name: station.slot_name,
           tray_id: station.tray_id,
           parts: station.tray_id ? [{
             id: `${station.id}-part`,
-            name: `Part from ${station.name}`,
+            name: `Part from ${station.slot_name}`,
             imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop'
           }] : []
         }));
 
+        console.log('Transformed stations:', transformedStations);
         setStations(transformedStations);
         setError(null);
       } catch (err) {
