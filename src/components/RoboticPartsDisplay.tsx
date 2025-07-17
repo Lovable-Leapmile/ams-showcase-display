@@ -44,7 +44,7 @@ const RoboticPartsDisplay = () => {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch('https://dev.qikpod.com/showcase/slots?tags=station&order_by_field=updated_at&order_by_type=ASC', {
+        const response = await fetch('https://dev.qikpod.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
           headers: {
             'Authorization': `Bearer ${AUTH_TOKEN}`,
             'Content-Type': 'application/json',
