@@ -40,48 +40,97 @@ const RoboticPartsDisplay = () => {
 
   const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
 
-  // Fetch stations from API
-  useEffect(() => {
-    const fetchStations = async () => {
-      try {
-        const response = await fetch('https://dev.qikpod.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
-          headers: {
-            'Authorization': `Bearer ${AUTH_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-        });
+  const fetchStations = async () => {
+    try {
+      console.log('Fetching stations data...');
+      const response = await fetch('https://dev.qikpod.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
+        headers: {
+          'Authorization': `Bearer ${AUTH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const apiResponse: ApiResponse = await response.json();
-        console.log('Fetched API response:', apiResponse);
-
-        // Transform API data to match our Station interface
-        const transformedStations: Station[] = apiResponse.records.map(station => ({
-          id: station.id.toString(),
-          name: station.slot_name,
-          tray_id: station.tray_id,
-          parts: station.tray_id ? [{
-            id: `${station.id}-part`,
-            name: `Part from ${station.slot_name}`,
-            imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop'
-          }] : []
-        }));
-
-        console.log('Transformed stations:', transformedStations);
-        setStations(transformedStations);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching stations:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch stations');
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
 
+      const apiResponse: ApiResponse = await response.json();
+      console.log('Fetched API response:', apiResponse);
+
+      // Transform API data to match our Station interface
+      const transformedStations: Station[] = apiResponse.records.map(station => ({
+        id: station.id.toString(),
+        name: station.slot_name,
+        tray_id: station.tray_id,
+        parts: station.tray_id ? [{
+          id: `${station.id}-part`,
+          name: `Part from ${station.slot_name}`,
+          imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop'
+        }] : []
+      }));
+
+      console.log('Transformed stations:', transformedStations);
+      setStations(transformedStations);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching stations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch stations');
+      
+      // Fallback to mock data when API fails
+      const mockStations: Station[] = [
+        {
+          id: '1',
+          name: 'A',
+          tray_id: 'T001',
+          parts: [{
+            id: '1-part',
+            name: 'Robotic Arm Component',
+            imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop'
+          }]
+        },
+        {
+          id: '2',
+          name: 'B',
+          tray_id: 'T002',
+          parts: [{
+            id: '2-part',
+            name: 'Motor Assembly',
+            imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&h=1080&fit=crop'
+          }]
+        },
+        {
+          id: '3',
+          name: 'C',
+          tray_id: null,
+          parts: []
+        },
+        {
+          id: '4',
+          name: 'D',
+          tray_id: 'T004',
+          parts: [{
+            id: '4-part',
+            name: 'Sensor Module',
+            imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&h=1080&fit=crop'
+          }]
+        }
+      ];
+      console.log('Using fallback mock data due to API error');
+      setStations(mockStations);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch and setup polling every 3 seconds
+  useEffect(() => {
     fetchStations();
+    
+    const pollInterval = setInterval(() => {
+      fetchStations();
+    }, 3000); // 3 seconds
+
+    return () => clearInterval(pollInterval);
   }, []);
 
   // Get stations that have parts
@@ -151,14 +200,6 @@ const RoboticPartsDisplay = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-red-400 text-2xl">Error: {error}</div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area - 80% height */}
@@ -181,6 +222,11 @@ const RoboticPartsDisplay = () => {
                     <p className="text-lg xl:text-xl opacity-90">
                       Currently displaying at {stations.find(s => s.id === currentStation)?.name}
                     </p>
+                    {error && (
+                      <p className="text-sm text-yellow-400 mt-2">
+                        Using fallback data (API connection failed)
+                      </p>
+                    )}
                   </div>
                 </>
               ) : (
@@ -188,6 +234,11 @@ const RoboticPartsDisplay = () => {
                   <div className="text-center text-slate-600">
                     <div className="text-6xl xl:text-7xl font-bold mb-4">NO PARTS</div>
                     <div className="text-2xl xl:text-3xl">Waiting for parts to be loaded...</div>
+                    {error && (
+                      <div className="text-lg text-yellow-600 mt-4">
+                        API Error: {error}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
