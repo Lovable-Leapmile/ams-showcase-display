@@ -228,9 +228,7 @@ const RoboticPartsDisplay = () => {
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-[100%] h-full object-fit mx-auto transition-opacity duration-500" />
                   <div className="absolute bottom-6 left-6 text-white">
                     <h2 className="text-3xl xl:text-4xl font-bold mb-2">{displayPart.name}</h2>
-                    <p className="text-lg xl:text-xl opacity-90">
-                      Currently displaying at {currentStation?.name}
-                    </p>
+                    
                   </div>
                 </> : <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center text-slate-600">
