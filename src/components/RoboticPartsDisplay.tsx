@@ -13,7 +13,6 @@ interface Station {
   name: string;
   tray_id: string | null;
   parts: Part[];
-  partsCount: number;
 }
 interface ApiStation {
   id: number;
@@ -70,8 +69,7 @@ const RoboticPartsDisplay = () => {
         id: station.id.toString(),
         name: station.slot_name,
         tray_id: station.tray_id,
-        parts: [],
-        partsCount: 0
+        parts: []
       }));
       console.log('Transformed stations:', transformedStations);
       setStations(transformedStations);
@@ -86,7 +84,7 @@ const RoboticPartsDisplay = () => {
       setIsLoading(false);
     }
   };
-  const fetchStationItems = async (trayId: string): Promise<{parts: Part[], count: number}> => {
+  const fetchStationItems = async (trayId: string): Promise<Part[]> => {
     try {
       console.log(`Fetching items for tray: ${trayId}`);
       const response = await fetch(`https://dev.qikpod.com/showcase/items?tray_id=${trayId}&order_by_field=updated_at&order_by_type=ASC`, {
@@ -106,10 +104,10 @@ const RoboticPartsDisplay = () => {
         imageUrl: item.display_image,
         description: item.item_description
       }));
-      return { parts, count: itemsResponse.count };
+      return parts;
     } catch (err) {
       console.error(`Error fetching items for tray ${trayId}:`, err);
-      return { parts: [], count: 0 };
+      return [];
     }
   };
   useEffect(() => {
@@ -136,11 +134,10 @@ const RoboticPartsDisplay = () => {
     const setupCarousel = async () => {
       if (currentStation.parts.length === 0) {
         console.log(`Loading parts for station ${currentStation.name} (${currentStation.tray_id})`);
-        const { parts, count } = await fetchStationItems(currentStation.tray_id!);
+        const parts = await fetchStationItems(currentStation.tray_id!);
         setStations(prevStations => prevStations.map(station => station.id === currentStation.id ? {
           ...station,
-          parts,
-          partsCount: count
+          parts
         } : station));
         if (parts.length > 0) {
           setDisplayPart(parts[0]);
@@ -246,10 +243,13 @@ const RoboticPartsDisplay = () => {
 
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
-          {currentStation?.tray_id && currentStation.partsCount > 0 && (
+          {currentStation?.tray_id && (
   <div className="mb-4 flex justify-center">
     <div className="flex space-x-2">
-      {Array.from({ length: currentStation.partsCount }).map((_, index) => (
+      {(currentStation.parts.length > 0
+        ? currentStation.parts
+        : Array.from({ length: currentPartIndex + 1 }) // fallback to show same dot count
+      ).map((_, index) => (
         <div
           key={index}
           className={cn(
