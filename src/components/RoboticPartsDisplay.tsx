@@ -212,7 +212,7 @@ const RoboticPartsDisplay = () => {
           <div className="bg-slate-700 p-6 rounded-2xl shadow-2xl border-4 border-slate-600 h-full">
             <div className="rounded-lg overflow-hidden relative h-full w-full bg-white">
               {displayPart ? <>
-                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-contain mx-auto transition-opacity duration-500" />
+                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill mx-auto transition-opacity duration-500" />
                   
                 </> : <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center text-slate-600">
