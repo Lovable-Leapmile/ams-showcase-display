@@ -20,7 +20,6 @@ interface ApiStation {
   id: number;
   slot_name: string;
   tray_id: string | null;
-  // Add other fields as needed based on API response
 }
 
 interface ApiResponse {
@@ -31,9 +30,24 @@ interface ApiResponse {
   ok: boolean;
 }
 
+interface ApiItem {
+  id: number;
+  item_name: string;
+  display_image: string;
+  updated_at: string;
+}
+
+interface ItemsApiResponse {
+  status: string;
+  records: ApiItem[];
+  count: number;
+  statusbool: boolean;
+  ok: boolean;
+}
+
 const RoboticPartsDisplay = () => {
   const [stations, setStations] = useState<Station[]>([]);
-  const [currentStation, setCurrentStation] = useState<string>('');
+  const [currentStationIndex, setCurrentStationIndex] = useState<number>(0);
   const [currentPartIndex, setCurrentPartIndex] = useState<number>(0);
   const [displayPart, setDisplayPart] = useState<Part | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,16 +73,12 @@ const RoboticPartsDisplay = () => {
       const apiResponse: ApiResponse = await response.json();
       console.log('Fetched API response:', apiResponse);
 
-      // Transform API data to match our Station interface
+      // Transform API data to match our Station interface (without parts initially)
       const transformedStations: Station[] = apiResponse.records.map(station => ({
         id: station.id.toString(),
         name: station.slot_name,
         tray_id: station.tray_id,
-        parts: station.tray_id ? [{
-          id: `${station.id}-part`,
-          name: `Part from ${station.slot_name}`,
-          imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop'
-        }] : []
+        parts: [] // Will be populated when station becomes active
       }));
 
       console.log('Transformed stations:', transformedStations);
@@ -85,75 +95,144 @@ const RoboticPartsDisplay = () => {
     }
   };
 
-  // Initial fetch and setup polling every 3 seconds
+  const fetchStationItems = async (trayId: string): Promise<Part[]> => {
+    try {
+      console.log(`Fetching items for tray: ${trayId}`);
+      const response = await fetch(`https://dev.qikpod.com/showcase/items?tray_id=${trayId}&order_by_field=updated_at&order_by_type=ASC`, {
+        headers: {
+          'Authorization': `Bearer ${AUTH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const itemsResponse: ItemsApiResponse = await response.json();
+      console.log(`Fetched items for ${trayId}:`, itemsResponse);
+
+      // Transform items to parts
+      const parts: Part[] = itemsResponse.records.map(item => ({
+        id: item.id.toString(),
+        name: item.item_name,
+        imageUrl: item.display_image,
+        description: `Updated: ${item.updated_at}`
+      }));
+
+      return parts;
+    } catch (err) {
+      console.error(`Error fetching items for tray ${trayId}:`, err);
+      return [];
+    }
+  };
+
+  // Initial fetch and setup polling every 3 seconds for stations
   useEffect(() => {
     fetchStations();
     
     const pollInterval = setInterval(() => {
       fetchStations();
-    }, 3000); // 3 seconds
+    }, 3000);
 
     return () => clearInterval(pollInterval);
   }, []);
 
-  // Get stations that have parts
-  const getStationsWithParts = () => {
-    return stations.filter(station => station.parts.length > 0);
+  // Get stations that have tray_id
+  const getStationsWithTray = () => {
+    return stations.filter(station => station.tray_id);
   };
 
-  // Initialize display with first available part
+  // Station sliding logic - changes every 10 seconds
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
     
-    const stationsWithParts = getStationsWithParts();
-    if (stationsWithParts.length > 0) {
-      const firstStation = stationsWithParts[0];
-      setCurrentStation(firstStation.id);
-      setCurrentPartIndex(0);
-      setDisplayPart(firstStation.parts[0]);
-    }
-  }, [stations, isLoading, showErrorScreen]);
-
-  // Automatic cycling logic
-  useEffect(() => {
-    if (isLoading || showErrorScreen) return;
-    const stationsWithParts = getStationsWithParts();
-    if (stationsWithParts.length === 0) {
+    const stationsWithTray = getStationsWithTray();
+    if (stationsWithTray.length === 0) {
       setDisplayPart(null);
-      setCurrentStation('');
       return;
     }
 
-    const interval = setInterval(() => {
-      const currentStationObj = stationsWithParts.find(s => s.id === currentStation);
-      if (!currentStationObj) {
-        // Current station no longer has parts, move to first available
-        const firstAvailable = stationsWithParts[0];
-        setCurrentStation(firstAvailable.id);
-        setCurrentPartIndex(0);
-        setDisplayPart(firstAvailable.parts[0]);
-        return;
-      }
+    // Initialize with first station
+    if (currentStationIndex >= stationsWithTray.length) {
+      setCurrentStationIndex(0);
+    }
 
-      // Check if current station has more parts to show
-      if (currentPartIndex + 1 < currentStationObj.parts.length) {
-        // Show next part in current station
-        const nextPartIndex = currentPartIndex + 1;
-        setCurrentPartIndex(nextPartIndex);
-        setDisplayPart(currentStationObj.parts[nextPartIndex]);
-      } else {
-        // Move to next station with parts
-        const currentStationIndex = stationsWithParts.findIndex(s => s.id === currentStation);
-        const nextStationIndex = (currentStationIndex + 1) % stationsWithParts.length;
-        const nextStation = stationsWithParts[nextStationIndex];
-        setCurrentStation(nextStation.id);
-        setCurrentPartIndex(0);
-        setDisplayPart(nextStation.parts[0]);
-      }
-    }, 5000); // 5 seconds
+    const interval = setInterval(() => {
+      setCurrentStationIndex(prev => {
+        const nextIndex = (prev + 1) % stationsWithTray.length;
+        setCurrentPartIndex(0); // Reset part index when changing stations
+        return nextIndex;
+      });
+    }, 10000); // 10 seconds
 
     return () => clearInterval(interval);
-  }, [currentStation, currentPartIndex, stations, isLoading, showErrorScreen]);
+  }, [stations, isLoading, showErrorScreen, currentStationIndex]);
+
+  // Fetch items for current active station and handle part cycling
+  useEffect(() => {
+    if (isLoading || showErrorScreen) return;
+    
+    const stationsWithTray = getStationsWithTray();
+    if (stationsWithTray.length === 0) return;
+
+    const currentStation = stationsWithTray[currentStationIndex];
+    if (!currentStation || !currentStation.tray_id) return;
+
+    // Fetch items for current station
+    const fetchAndSetItems = async () => {
+      const parts = await fetchStationItems(currentStation.tray_id!);
+      
+      // Update the station with its parts
+      setStations(prevStations => 
+        prevStations.map(station => 
+          station.id === currentStation.id 
+            ? { ...station, parts }
+            : station
+        )
+      );
+
+      // Set initial display part
+      if (parts.length > 0) {
+        setDisplayPart(parts[0]);
+      }
+    };
+
+    fetchAndSetItems();
+  }, [currentStationIndex, stations.length, isLoading, showErrorScreen]);
+
+  // Handle part cycling within current station
+  useEffect(() => {
+    if (isLoading || showErrorScreen) return;
+    
+    const stationsWithTray = getStationsWithTray();
+    if (stationsWithTray.length === 0) return;
+
+    const currentStation = stationsWithTray[currentStationIndex];
+    if (!currentStation || currentStation.parts.length === 0) return;
+
+    const partCount = currentStation.parts.length;
+    if (partCount <= 1) {
+      // If only one part or no parts, just display it
+      if (partCount === 1) {
+        setDisplayPart(currentStation.parts[0]);
+      }
+      return;
+    }
+
+    // Calculate time per part: 10 seconds divided by number of parts
+    const timePerPart = 10000 / partCount;
+
+    const interval = setInterval(() => {
+      setCurrentPartIndex(prev => {
+        const nextIndex = (prev + 1) % partCount;
+        setDisplayPart(currentStation.parts[nextIndex]);
+        return nextIndex;
+      });
+    }, timePerPart);
+
+    return () => clearInterval(interval);
+  }, [currentStationIndex, stations, currentPartIndex, isLoading, showErrorScreen]);
 
   if (isLoading) {
     return (
@@ -176,6 +255,9 @@ const RoboticPartsDisplay = () => {
     );
   }
 
+  const stationsWithTray = getStationsWithTray();
+  const currentStation = stationsWithTray[currentStationIndex];
+
   return (
     <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       {/* Main Display Area - 80% height */}
@@ -190,13 +272,12 @@ const RoboticPartsDisplay = () => {
                   <img 
                     src={displayPart.imageUrl} 
                     alt={displayPart.name} 
-                    className="w-full h-full object-fill transition-opacity duration-500" 
+                    className="w-[90%] h-full object-contain mx-auto transition-opacity duration-500" 
                   />
-                  <div className="absolute inset-0" />
                   <div className="absolute bottom-6 left-6 text-white">
                     <h2 className="text-3xl xl:text-4xl font-bold mb-2">{displayPart.name}</h2>
                     <p className="text-lg xl:text-xl opacity-90">
-                      Currently displaying at {stations.find(s => s.id === currentStation)?.name}
+                      Currently displaying at {currentStation?.name}
                     </p>
                   </div>
                 </>
@@ -217,10 +298,10 @@ const RoboticPartsDisplay = () => {
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
           {/* Progress Indicators */}
-          {displayPart && (
+          {displayPart && currentStation && currentStation.parts.length > 1 && (
             <div className="mb-4 flex justify-center">
               <div className="flex space-x-2">
-                {stations.find(s => s.id === currentStation)?.parts.map((_, index) => (
+                {currentStation.parts.map((_, index) => (
                   <div
                     key={index}
                     className={cn(
@@ -237,19 +318,19 @@ const RoboticPartsDisplay = () => {
 
           <div className="flex justify-center items-center w-full">
             <div className="flex justify-evenly items-center w-full max-w-full">
-              {stations.map((station) => (
+              {stations.map((station, index) => (
                 <div
                   key={station.id}
                   className={cn(
                     "flex flex-col items-center space-y-2 transition-all duration-300 flex-1",
-                    currentStation === station.id ? "scale-110" : "scale-100"
+                    stationsWithTray[currentStationIndex]?.id === station.id ? "scale-110" : "scale-100"
                   )}
                 >
                   {/* Station Indicator */}
                   <div
                     className={cn(
                       "w-16 h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2",
-                      currentStation === station.id
+                      stationsWithTray[currentStationIndex]?.id === station.id
                         ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50"
                         : station.tray_id
                         ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500"
@@ -264,7 +345,7 @@ const RoboticPartsDisplay = () => {
                     <div
                       className={cn(
                         "text-sm xl:text-base font-medium",
-                        currentStation === station.id
+                        stationsWithTray[currentStationIndex]?.id === station.id
                           ? "text-teal-400"
                           : station.tray_id
                           ? "text-slate-300"
