@@ -243,10 +243,13 @@ const RoboticPartsDisplay = () => {
 
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
-          {currentStation?.tray_id && currentStation.parts.length > 0 && (
+          {currentStation?.tray_id && (
   <div className="mb-4 flex justify-center">
     <div className="flex space-x-2">
-      {currentStation.parts.map((_, index) => (
+      {(currentStation.parts.length > 0
+        ? currentStation.parts
+        : Array.from({ length: currentPartIndex + 1 }) // fallback to show same dot count
+      ).map((_, index) => (
         <div
           key={index}
           className={cn(
