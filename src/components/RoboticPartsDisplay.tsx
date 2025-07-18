@@ -208,7 +208,7 @@ const RoboticPartsDisplay = () => {
   }
   const stationsWithTray = getStationsWithTray();
   const currentStation = stationsWithTray[currentStationIndex];
-  
+
   // Show no trays screen when no stations have trays
   if (stationsWithTray.length === 0) {
     return <div className="h-screen flex flex-col items-center justify-center" style={{
@@ -218,11 +218,10 @@ const RoboticPartsDisplay = () => {
         <div className="text-center text-gray-700 text-sm max-w-md px-4">
           <p>No trays are in Stations Retrieve Tray from App </p>
           <img src={appLinkImage} alt="App Link" className="inline-block mx-2 w-8 h-8 object-contain" />
-          <p>to View Part Details</p>
+          
         </div>
       </div>;
   }
-  
   return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       <div className="h-[80%] flex items-center justify-center p-6">
         <div className="relative w-full h-full">
