@@ -243,18 +243,15 @@ const RoboticPartsDisplay = () => {
 
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
-          {currentStation?.tray_id && (
+          {currentStation?.tray_id && currentStation.parts.length > 0 && (
   <div className="mb-4 flex justify-center">
     <div className="flex space-x-2">
-      {(currentStation.parts.length > 0
-        ? currentStation.parts
-        : Array(3).fill(null) // Default 3 placeholders if parts not yet fetched
-      ).map((_, index) => (
+      {currentStation.parts.map((_, index) => (
         <div
           key={index}
           className={cn(
             "w-3 h-3 rounded-full transition-all duration-300",
-            index === currentPartIndex && currentStation.parts.length > 0
+            index === currentPartIndex
               ? "bg-teal-400 shadow-lg shadow-teal-400/50"
               : "bg-slate-400"
           )}
