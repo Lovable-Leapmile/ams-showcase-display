@@ -303,12 +303,13 @@ const RoboticPartsDisplay = () => {
                         "w-3 h-3 rounded-full transition-all duration-300",
                         index === currentPartIndex 
                           ? "bg-teal-400 shadow-lg shadow-teal-400/50" 
-                          : "bg-slate-600"
+                          : "bg-slate-400"
                       )}
                     />
                   ))
                 ) : (
-                  <div className="w-3 h-3 rounded-full bg-slate-600 animate-pulse" />
+                  // Always show at least one dot while loading, indicating there are items
+                  <div className="w-3 h-3 rounded-full bg-slate-400" />
                 )}
               </div>
             </div>
