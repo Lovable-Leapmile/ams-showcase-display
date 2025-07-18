@@ -243,13 +243,26 @@ const RoboticPartsDisplay = () => {
 
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
-          {currentStation && currentStation.tray_id && <div className="mb-4 flex justify-center">
-              <div className="flex space-x-2">
-                {currentStation.parts.length > 0 ? currentStation.parts.map((_, index) => <div key={index} className={cn("w-3 h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-400")} />) :
-            // Always show at least one dot while loading, indicating there are items
-            <div className="w-3 h-3 rounded-full bg-slate-400" />}
-              </div>
-            </div>}
+          {currentStation?.tray_id && (
+  <div className="mb-4 flex justify-center">
+    <div className="flex space-x-2">
+      {(currentStation.parts && currentStation.parts.length > 0
+        ? currentStation.parts
+        : Array(1).fill(null)
+      ).map((_, index) => (
+        <div
+          key={index}
+          className={cn(
+            "w-3 h-3 rounded-full transition-all duration-300",
+            index === currentPartIndex
+              ? "bg-teal-400 shadow-lg shadow-teal-400/50"
+              : "bg-slate-400"
+          )}
+        />
+      ))}
+    </div>
+  </div>
+)}
 
           <div className="flex justify-center items-center w-full">
             <div className="flex justify-evenly items-center w-full max-w-full">
