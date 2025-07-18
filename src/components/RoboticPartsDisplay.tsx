@@ -212,11 +212,11 @@ const RoboticPartsDisplay = () => {
   // Show no trays screen when no stations have trays
   if (stationsWithTray.length === 0) {
     return <div className="h-screen flex flex-col items-center justify-center" style={{
-      backgroundColor: '#DBEAEA'
+      backgroundColor: '#E5F0F0'
     }}>
         <img src={amsLogo} alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
         <div className="text-center text-gray-700 text-sm max-w-md px-4">
-          <p>No trays are in Stations Retrieve Tray from App with this image</p>
+          <p>No trays are in Stations Retrieve Tray from App </p>
           <img src={appLinkImage} alt="App Link" className="inline-block mx-2 w-8 h-8 object-contain" />
           <p>to View Part Details</p>
         </div>
