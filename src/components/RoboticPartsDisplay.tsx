@@ -216,7 +216,8 @@ const RoboticPartsDisplay = () => {
     }}>
         <img src={amsLogo} alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
         <div className="text-center text-gray-700 text-sm max-w-md px-4">
-          <p>No trays are in Stations Retrieve Tray from App </p>
+          <p>No trays are in Stations Retrieve Tray from App
+App Access QR</p>
           <img src={appLinkImage} alt="App Link" className="inline-block mx-2 w-32 h-32 object-contain pt-4 " />
           
         </div>
@@ -243,27 +244,13 @@ const RoboticPartsDisplay = () => {
 
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
-          {currentStation?.tray_id && (
-  <div className="mb-4 flex justify-center">
-    <div className="flex space-x-2">
-      {(currentStation.parts.length > 0
-        ? currentStation.parts
-        : Array.from({ length: currentPartIndex + 1 }) // fallback to show same dot count
-      ).map((_, index) => (
-        <div
-          key={index}
-          className={cn(
-            "w-3 h-3 rounded-full transition-all duration-300",
-            index === currentPartIndex
-              ? "bg-teal-400 shadow-lg shadow-teal-400/50"
-              : "bg-slate-400"
-          )}
-        />
-      ))}
-    </div>
-  </div>
-)}
-
+          {currentStation && currentStation.tray_id && <div className="mb-4 flex justify-center">
+              <div className="flex space-x-2">
+                {currentStation.parts.length > 0 ? currentStation.parts.map((_, index) => <div key={index} className={cn("w-3 h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-400")} />) :
+            // Always show at least one dot while loading, indicating there are items
+            <div className="w-3 h-3 rounded-full bg-slate-400" />}
+              </div>
+            </div>}
 
           <div className="flex justify-center items-center w-full">
             <div className="flex justify-evenly items-center w-full max-w-full">
