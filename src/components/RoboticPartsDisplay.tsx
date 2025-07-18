@@ -254,32 +254,8 @@ const RoboticPartsDisplay = () => {
           <div className="flex justify-center items-center w-full">
             <div className="flex justify-evenly items-center w-full max-w-full">
               {stations.map((station, index) => <div key={station.id} className={cn("flex flex-col items-center space-y-2 transition-all duration-300 flex-1", stationsWithTray[currentStationIndex]?.id === station.id ? "scale-110" : "scale-100")}>
-                  <div className="relative">
-                    {/* Dot indicators above each station */}
-                    {station.tray_id && (
-                      <div className="absolute top-2 left-1 flex gap-1">
-                        {station.parts.length > 0 ? (
-                          station.parts.map((_, partIndex) => (
-                            <div
-                              key={partIndex}
-                              className={cn(
-                                "w-2 h-2 rounded-full transition-all duration-200",
-                                stationsWithTray[currentStationIndex]?.id === station.id && partIndex === currentPartIndex
-                                  ? "bg-blue-500 scale-125"
-                                  : "bg-gray-400"
-                              )}
-                            />
-                          ))
-                        ) : (
-                          // Show single dot while loading parts
-                          <div className="w-2 h-2 rounded-full bg-gray-400" />
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className={cn("w-16 h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2", stationsWithTray[currentStationIndex]?.id === station.id ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50" : station.tray_id ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500" : "bg-slate-800 text-slate-500 border-slate-700 opacity-50")}>
-                      {station.name}
-                    </div>
+                  <div className={cn("w-16 h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2", stationsWithTray[currentStationIndex]?.id === station.id ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50" : station.tray_id ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500" : "bg-slate-800 text-slate-500 border-slate-700 opacity-50")}>
+                    {station.name}
                   </div>
 
                   <div className="text-center">
