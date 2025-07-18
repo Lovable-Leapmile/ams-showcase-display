@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -32,15 +31,18 @@ interface ApiResponse {
 
 interface ApiItem {
   id: number;
-  item_name: string;
+  item_id: string;
+  item_description: string;
   display_image: string;
   updated_at: string;
+  tray_id: string;
 }
 
 interface ItemsApiResponse {
   status: string;
   records: ApiItem[];
   count: number;
+  total_count: number;
   statusbool: boolean;
   ok: boolean;
 }
@@ -113,9 +115,9 @@ const RoboticPartsDisplay = () => {
 
       const parts: Part[] = itemsResponse.records.map(item => ({
         id: item.id.toString(),
-        name: item.item_name,
+        name: item.item_id,
         imageUrl: item.display_image,
-        description: `Updated: ${item.updated_at}`
+        description: item.item_description
       }));
 
       return parts;
@@ -125,7 +127,6 @@ const RoboticPartsDisplay = () => {
     }
   };
 
-  // Initial fetch and setup polling every 3 seconds for stations
   useEffect(() => {
     fetchStations();
     const pollInterval = setInterval(() => {
@@ -134,12 +135,10 @@ const RoboticPartsDisplay = () => {
     return () => clearInterval(pollInterval);
   }, []);
 
-  // Get stations that have tray_id
   const getStationsWithTray = () => {
     return stations.filter(station => station.tray_id);
   };
 
-  // Main carousel logic - handles both station and part cycling
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
 
@@ -149,7 +148,6 @@ const RoboticPartsDisplay = () => {
       return;
     }
 
-    // Ensure currentStationIndex is within bounds
     const validStationIndex = currentStationIndex >= stationsWithTray.length ? 0 : currentStationIndex;
     const currentStation = stationsWithTray[validStationIndex];
 
@@ -158,12 +156,10 @@ const RoboticPartsDisplay = () => {
     let intervalId: NodeJS.Timeout;
 
     const setupCarousel = async () => {
-      // Fetch items for current station if not already loaded
       if (currentStation.parts.length === 0) {
         console.log(`Loading parts for station ${currentStation.name} (${currentStation.tray_id})`);
         const parts = await fetchStationItems(currentStation.tray_id!);
         
-        // Update station with parts
         setStations(prevStations => 
           prevStations.map(station => 
             station.id === currentStation.id 
@@ -172,16 +168,14 @@ const RoboticPartsDisplay = () => {
           )
         );
 
-        // Set initial display part
         if (parts.length > 0) {
           setDisplayPart(parts[0]);
           setCurrentPartIndex(0);
         }
 
-        // If there are multiple parts, cycle through them
         if (parts.length > 1) {
           let partIndex = 0;
-          const timePerPart = 10000 / parts.length; // 10 seconds divided by number of parts
+          const timePerPart = 10000 / parts.length;
           
           intervalId = setInterval(() => {
             partIndex = (partIndex + 1) % parts.length;
@@ -191,13 +185,11 @@ const RoboticPartsDisplay = () => {
           }, timePerPart);
         }
       } else {
-        // Station already has parts loaded
         if (currentStation.parts.length > 0) {
           const validPartIndex = currentPartIndex >= currentStation.parts.length ? 0 : currentPartIndex;
           setDisplayPart(currentStation.parts[validPartIndex]);
           setCurrentPartIndex(validPartIndex);
 
-          // If there are multiple parts, cycle through them
           if (currentStation.parts.length > 1) {
             let partIndex = validPartIndex;
             const timePerPart = 10000 / currentStation.parts.length;
@@ -222,7 +214,6 @@ const RoboticPartsDisplay = () => {
     };
   }, [currentStationIndex, stations.length, isLoading, showErrorScreen]);
 
-  // Station switching logic - changes every 10 seconds
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
 
@@ -233,11 +224,11 @@ const RoboticPartsDisplay = () => {
       console.log(`Switching from station ${currentStationIndex} to next station`);
       setCurrentStationIndex(prev => {
         const nextIndex = (prev + 1) % stationsWithTray.length;
-        setCurrentPartIndex(0); // Reset part index when changing stations
+        setCurrentPartIndex(0);
         console.log(`Switched to station ${nextIndex}: ${stationsWithTray[nextIndex].name}`);
         return nextIndex;
       });
-    }, 10000); // 10 seconds
+    }, 10000);
 
     return () => clearInterval(stationInterval);
   }, [stations.length, isLoading, showErrorScreen, currentStationIndex]);
@@ -268,12 +259,9 @@ const RoboticPartsDisplay = () => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
-      {/* Main Display Area - 80% height */}
       <div className="h-[80%] flex items-center justify-center p-6">
         <div className="relative w-full h-full">
-          {/* TV Frame */}
           <div className="bg-slate-700 p-6 rounded-2xl shadow-2xl border-4 border-slate-600 h-full">
-            {/* Screen */}
             <div className="rounded-lg overflow-hidden relative h-full w-full bg-white">
               {displayPart ? (
                 <>
@@ -284,6 +272,9 @@ const RoboticPartsDisplay = () => {
                   />
                   <div className="absolute bottom-6 left-6 text-white">
                     <h2 className="text-3xl xl:text-4xl font-bold mb-2">{displayPart.name}</h2>
+                    {displayPart.description && (
+                      <p className="text-lg xl:text-xl opacity-80">{displayPart.description}</p>
+                    )}
                   </div>
                 </>
               ) : (
@@ -299,24 +290,26 @@ const RoboticPartsDisplay = () => {
         </div>
       </div>
 
-      {/* Station Indicators - 20% height */}
       <div className="h-[20%] p-6 flex flex-col justify-center">
         <div className="w-full">
-          {/* Progress Indicators for Parts within Current Station */}
-          {displayPart && currentStation && currentStation.parts.length > 1 && (
+          {currentStation && currentStation.tray_id && (
             <div className="mb-4 flex justify-center">
               <div className="flex space-x-2">
-                {currentStation.parts.map((_, index) => (
-                  <div 
-                    key={index}
-                    className={cn(
-                      "w-3 h-3 rounded-full transition-all duration-300",
-                      index === currentPartIndex 
-                        ? "bg-teal-400 shadow-lg shadow-teal-400/50" 
-                        : "bg-slate-600"
-                    )}
-                  />
-                ))}
+                {currentStation.parts.length > 0 ? (
+                  currentStation.parts.map((_, index) => (
+                    <div 
+                      key={index}
+                      className={cn(
+                        "w-3 h-3 rounded-full transition-all duration-300",
+                        index === currentPartIndex 
+                          ? "bg-teal-400 shadow-lg shadow-teal-400/50" 
+                          : "bg-slate-600"
+                      )}
+                    />
+                  ))
+                ) : (
+                  <div className="w-3 h-3 rounded-full bg-slate-600 animate-pulse" />
+                )}
               </div>
             </div>
           )}
@@ -333,7 +326,6 @@ const RoboticPartsDisplay = () => {
                       : "scale-100"
                   )}
                 >
-                  {/* Station Indicator */}
                   <div className={cn(
                     "w-16 h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2",
                     stationsWithTray[currentStationIndex]?.id === station.id 
@@ -345,7 +337,6 @@ const RoboticPartsDisplay = () => {
                     {station.name}
                   </div>
 
-                  {/* Tray ID Display */}
                   <div className="text-center">
                     <div className={cn(
                       "text-sm xl:text-base font-medium",
