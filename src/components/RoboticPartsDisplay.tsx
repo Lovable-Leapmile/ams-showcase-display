@@ -182,17 +182,22 @@ const RoboticPartsDisplay = () => {
     if (isLoading || showErrorScreen) return;
     const stationsWithTray = getStationsWithTray();
     if (stationsWithTray.length <= 1) return;
+    
+    console.log(`Setting up station carousel with ${stationsWithTray.length} stations`);
     const stationInterval = setInterval(() => {
       console.log(`Switching from station ${currentStationIndex} to next station`);
       setCurrentStationIndex(prev => {
         const nextIndex = (prev + 1) % stationsWithTray.length;
         setCurrentPartIndex(0);
-        console.log(`Switched to station ${nextIndex}: ${stationsWithTray[nextIndex].name}`);
+        console.log(`Switched to station ${nextIndex}: ${stationsWithTray[nextIndex]?.name}`);
         return nextIndex;
       });
     }, 10000);
-    return () => clearInterval(stationInterval);
-  }, [stations.length, isLoading, showErrorScreen, currentStationIndex]);
+    return () => {
+      console.log('Clearing station interval');
+      clearInterval(stationInterval);
+    };
+  }, [stations.length, isLoading, showErrorScreen]);
   if (isLoading) {
     return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading stations...</div>
