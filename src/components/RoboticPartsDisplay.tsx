@@ -120,6 +120,34 @@ const RoboticPartsDisplay = () => {
   const getStationsWithTray = () => {
     return stations.filter(station => station.tray_id);
   };
+  // Effect to refresh parts for current station every 3 seconds
+  useEffect(() => {
+    if (isLoading || showErrorScreen) return;
+    const stationsWithTray = getStationsWithTray();
+    if (stationsWithTray.length === 0) return;
+    
+    const validStationIndex = currentStationIndex >= stationsWithTray.length ? 0 : currentStationIndex;
+    const currentStation = stationsWithTray[validStationIndex];
+    if (!currentStation || !currentStation.tray_id) return;
+
+    const refreshParts = async () => {
+      console.log(`Refreshing parts for station ${currentStation.name} (${currentStation.tray_id})`);
+      const parts = await fetchStationItems(currentStation.tray_id!);
+      setStations(prevStations => prevStations.map(station => 
+        station.id === currentStation.id ? { ...station, parts } : station
+      ));
+    };
+
+    // Initial load
+    refreshParts();
+
+    // Refresh parts every 3 seconds
+    const refreshInterval = setInterval(refreshParts, 3000);
+
+    return () => clearInterval(refreshInterval);
+  }, [currentStationIndex, isLoading, showErrorScreen]);
+
+  // Effect to handle part cycling within current station
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
     const stationsWithTray = getStationsWithTray();
@@ -127,57 +155,32 @@ const RoboticPartsDisplay = () => {
       setDisplayPart(null);
       return;
     }
+
     const validStationIndex = currentStationIndex >= stationsWithTray.length ? 0 : currentStationIndex;
     const currentStation = stationsWithTray[validStationIndex];
-    if (!currentStation || !currentStation.tray_id) return;
-    let intervalId: NodeJS.Timeout;
-    const setupCarousel = async () => {
-      if (currentStation.parts.length === 0) {
-        console.log(`Loading parts for station ${currentStation.name} (${currentStation.tray_id})`);
-        const parts = await fetchStationItems(currentStation.tray_id!);
-        setStations(prevStations => prevStations.map(station => station.id === currentStation.id ? {
-          ...station,
-          parts
-        } : station));
-        if (parts.length > 0) {
-          setDisplayPart(parts[0]);
-          setCurrentPartIndex(0);
-        }
-        if (parts.length > 1) {
-          let partIndex = 0;
-          const timePerPart = 10000 / parts.length;
-          intervalId = setInterval(() => {
-            partIndex = (partIndex + 1) % parts.length;
-            setCurrentPartIndex(partIndex);
-            setDisplayPart(parts[partIndex]);
-            console.log(`Cycling to part ${partIndex}: ${parts[partIndex].name}`);
-          }, timePerPart);
-        }
-      } else {
-        if (currentStation.parts.length > 0) {
-          const validPartIndex = currentPartIndex >= currentStation.parts.length ? 0 : currentPartIndex;
-          setDisplayPart(currentStation.parts[validPartIndex]);
-          setCurrentPartIndex(validPartIndex);
-          if (currentStation.parts.length > 1) {
-            let partIndex = validPartIndex;
-            const timePerPart = 10000 / currentStation.parts.length;
-            intervalId = setInterval(() => {
-              partIndex = (partIndex + 1) % currentStation.parts.length;
-              setCurrentPartIndex(partIndex);
-              setDisplayPart(currentStation.parts[partIndex]);
-              console.log(`Cycling to part ${partIndex}: ${currentStation.parts[partIndex].name}`);
-            }, timePerPart);
-          }
-        }
-      }
-    };
-    setupCarousel();
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [currentStationIndex, stations.length, isLoading, showErrorScreen]);
+    if (!currentStation || !currentStation.tray_id || currentStation.parts.length === 0) {
+      setDisplayPart(null);
+      return;
+    }
+
+    const validPartIndex = currentPartIndex >= currentStation.parts.length ? 0 : currentPartIndex;
+    setDisplayPart(currentStation.parts[validPartIndex]);
+    setCurrentPartIndex(validPartIndex);
+
+    if (currentStation.parts.length <= 1) return;
+
+    let partIndex = validPartIndex;
+    const timePerPart = 10000 / currentStation.parts.length;
+    
+    const cycleInterval = setInterval(() => {
+      partIndex = (partIndex + 1) % currentStation.parts.length;
+      setCurrentPartIndex(partIndex);
+      setDisplayPart(currentStation.parts[partIndex]);
+      console.log(`Cycling to part ${partIndex}: ${currentStation.parts[partIndex].name}`);
+    }, timePerPart);
+
+    return () => clearInterval(cycleInterval);
+  }, [currentStationIndex, stations, currentPartIndex]);
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
     const stationsWithTray = getStationsWithTray();
