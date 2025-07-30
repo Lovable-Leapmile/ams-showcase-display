@@ -183,24 +183,19 @@ const RoboticPartsDisplay = () => {
     const stationsWithTray = getStationsWithTray();
     if (stationsWithTray.length <= 1) return;
     
-    // Reset currentStationIndex if it's out of bounds
-    if (currentStationIndex >= stationsWithTray.length) {
-      setCurrentStationIndex(0);
-      setCurrentPartIndex(0);
-      return;
-    }
-    
     console.log(`Setting up station carousel with ${stationsWithTray.length} stations`);
     const stationInterval = setInterval(() => {
-      console.log(`Switching from station ${currentStationIndex} to next station`);
       setCurrentStationIndex(prev => {
         const currentStationsWithTray = getStationsWithTray();
+        if (currentStationsWithTray.length === 0) return 0;
+        
         const nextIndex = (prev + 1) % currentStationsWithTray.length;
         setCurrentPartIndex(0);
         console.log(`Switched to station ${nextIndex}: ${currentStationsWithTray[nextIndex]?.name}`);
         return nextIndex;
       });
     }, 10000);
+    
     return () => {
       console.log('Clearing station interval');
       clearInterval(stationInterval);
@@ -243,11 +238,8 @@ const RoboticPartsDisplay = () => {
               {displayPart ? <>
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill mx-auto transition-opacity duration-500" />
                   
-                </> : <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center text-slate-600">
-                    <div className="text-6xl xl:text-7xl font-bold mb-4">NO PARTS</div>
-                    <div className="text-2xl xl:text-3xl">Waiting for parts to be loaded...</div>
-                  </div>
+                </> : <div className="w-full h-full flex items-center justify-center bg-white">
+                  {/* Keep blank - no content */}
                 </div>}
             </div>
           </div>
