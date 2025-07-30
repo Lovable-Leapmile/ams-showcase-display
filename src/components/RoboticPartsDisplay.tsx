@@ -177,7 +177,7 @@ const RoboticPartsDisplay = () => {
         clearInterval(intervalId);
       }
     };
-  }, [currentStationIndex, stations.length, isLoading, showErrorScreen]);
+  }, [currentStationIndex, stations, isLoading, showErrorScreen]);
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
     const stationsWithTray = getStationsWithTray();
