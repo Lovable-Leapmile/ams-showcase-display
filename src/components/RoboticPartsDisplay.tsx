@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import amsLogo from '@/assets/ams-logo.png';
 import appLinkImage from '@/assets/applink.png';
@@ -50,6 +50,7 @@ const RoboticPartsDisplay = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showErrorScreen, setShowErrorScreen] = useState(false);
+  const previousStationsRef = useRef<Station[]>([]);
   const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
   const fetchStations = async () => {
     try {
@@ -117,6 +118,44 @@ const RoboticPartsDisplay = () => {
     }, 3000);
     return () => clearInterval(pollInterval);
   }, []);
+
+  // New effect to detect new trays and switch to them
+  useEffect(() => {
+    if (isLoading || showErrorScreen || stations.length === 0) return;
+    
+    const previousStations = previousStationsRef.current;
+    const currentStationsWithTray = getStationsWithTray();
+    const previousStationsWithTray = previousStations.filter(station => station.tray_id);
+    
+    // Check if a new tray was added
+    if (currentStationsWithTray.length > previousStationsWithTray.length) {
+      // Find the newly added station with tray
+      const newStationWithTray = currentStationsWithTray.find(station => 
+        !previousStationsWithTray.some(prevStation => prevStation.id === station.id)
+      );
+      
+      if (newStationWithTray) {
+        // Find the index of the new station in the stationsWithTray array
+        const newStationIndex = currentStationsWithTray.findIndex(station => station.id === newStationWithTray.id);
+        if (newStationIndex !== -1) {
+          console.log(`New tray detected at station ${newStationWithTray.name}, switching to it immediately`);
+          setCurrentStationIndex(newStationIndex);
+          setCurrentPartIndex(0);
+        }
+      }
+    }
+    
+    // Handle case when current station loses its tray
+    if (currentStationsWithTray.length > 0 && currentStationIndex >= currentStationsWithTray.length) {
+      console.log('Current station index is out of bounds, resetting to 0');
+      setCurrentStationIndex(0);
+      setCurrentPartIndex(0);
+    }
+    
+    // Update the ref for next comparison
+    previousStationsRef.current = stations;
+  }, [stations, isLoading, showErrorScreen, currentStationIndex]);
+
   const getStationsWithTray = () => {
     return stations.filter(station => station.tray_id);
   };
@@ -197,7 +236,7 @@ const RoboticPartsDisplay = () => {
       console.log('Clearing station interval');
       clearInterval(stationInterval);
     };
-  }, [stations.length, isLoading, showErrorScreen]);
+  }, [stations.length, isLoading, showErrorScreen, currentStationIndex]);
   if (isLoading) {
     return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading stations...</div>
