@@ -75,24 +75,35 @@ const RoboticPartsDisplay = () => {
       
       // Check for newly received trays and auto-slide to them
       setStations(prevStations => {
+        console.log('Previous stations:', prevStations);
+        console.log('New stations:', transformedStations);
+        
         const newStationsWithTray = transformedStations.filter(station => station.tray_id);
         const prevStationsWithTray = prevStations.filter(station => station.tray_id);
         
-        // Find stations that newly received trays
-        const newlyReceivedTrays = newStationsWithTray.filter(newStation => 
-          !prevStationsWithTray.some(prevStation => 
-            prevStation.id === newStation.id && prevStation.tray_id === newStation.tray_id
-          )
-        );
+        console.log('Previous stations with tray:', prevStationsWithTray.map(s => `${s.name}:${s.tray_id}`));
+        console.log('New stations with tray:', newStationsWithTray.map(s => `${s.name}:${s.tray_id}`));
         
-        // If a station newly received a tray, auto-slide to it
-        if (newlyReceivedTrays.length > 0) {
+        // Find stations that newly received trays (either new tray_id or station that didn't have tray before)
+        const newlyReceivedTrays = newStationsWithTray.filter(newStation => {
+          const prevStation = prevStations.find(prev => prev.id === newStation.id);
+          const isNewTray = !prevStation || prevStation.tray_id !== newStation.tray_id;
+          console.log(`Station ${newStation.name}: prevTray=${prevStation?.tray_id}, newTray=${newStation.tray_id}, isNew=${isNewTray}`);
+          return isNewTray;
+        });
+        
+        console.log('Newly received trays:', newlyReceivedTrays);
+        
+        // If a station newly received a tray, auto-slide to it immediately
+        if (newlyReceivedTrays.length > 0 && prevStations.length > 0) { // Only auto-slide if not initial load
           const newStation = newlyReceivedTrays[0];
           const newStationIndex = newStationsWithTray.findIndex(station => station.id === newStation.id);
           if (newStationIndex !== -1) {
-            console.log(`Auto-sliding to station ${newStation.name} that received tray ${newStation.tray_id}`);
-            setCurrentStationIndex(newStationIndex);
-            setCurrentPartIndex(0);
+            console.log(`Auto-sliding to station ${newStation.name} (index ${newStationIndex}) that received tray ${newStation.tray_id}`);
+            setTimeout(() => {
+              setCurrentStationIndex(newStationIndex);
+              setCurrentPartIndex(0);
+            }, 100); // Small delay to ensure state is properly updated
           }
         }
         
