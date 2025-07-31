@@ -54,7 +54,7 @@ const RoboticPartsDisplay = () => {
   const fetchStations = async () => {
     try {
       console.log('Fetching stations data...');
-      const response = await fetch('https://dev.qikpod.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
+      const response = await fetch('https://amsshowcase1.leapmile.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
         headers: {
           'Authorization': `Bearer ${AUTH_TOKEN}`,
           'Content-Type': 'application/json'
@@ -87,7 +87,7 @@ const RoboticPartsDisplay = () => {
   const fetchStationItems = async (trayId: string): Promise<Part[]> => {
     try {
       console.log(`Fetching items for tray: ${trayId}`);
-      const response = await fetch(`https://dev.qikpod.com/showcase/items?tray_id=${trayId}&order_by_field=updated_at&order_by_type=ASC`, {
+      const response = await fetch(`https://amsshowcase1.leapmile.com/showcase/items?tray_id=${trayId}&order_by_field=updated_at&order_by_type=ASC`, {
         headers: {
           'Authorization': `Bearer ${AUTH_TOKEN}`,
           'Content-Type': 'application/json'
