@@ -215,7 +215,7 @@ const RoboticPartsDisplay = () => {
         clearInterval(intervalId);
       }
     };
-  }, [currentStationIndex, stations.length, isLoading, showErrorScreen]);
+  }, [currentStationIndex, stations, isLoading, showErrorScreen]);
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
     const stationsWithTray = getStationsWithTray();
@@ -254,31 +254,40 @@ const RoboticPartsDisplay = () => {
 
   // Show no trays screen when no stations have trays
   if (stationsWithTray.length === 0) {
-    return <div className="h-screen flex flex-col items-center justify-center" style={{
-      backgroundColor: '#E5F0F0'
-    }}>
+    return (
+      <div className="h-screen flex flex-col items-center justify-center" style={{ backgroundColor: '#E5F0F0' }}>
         <img src={amsLogo} alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
         <div className="text-center text-gray-700 text-sm max-w-md px-4">
           <p>No trays are in Stations Retrieve Tray from App</p>
           <img src="https://ams-bucket.blr1.digitaloceanspaces.com/applink_QR.png" alt="App Link" className="inline-block mx-2 w-64 h-64 object-contain pt-4 " />
-          
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
+  return (
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
       <div className="h-[80%] flex items-center justify-center p-6">
         <div className="relative w-full h-full">
           <div className="bg-slate-700 p-0 shadow-2xl border-4 border-slate-600 h-full rounded-3xl">
             <div className="rounded-3xl overflow-hidden relative h-full w-full bg-white">
-              {displayPart ? <>
+              {displayPart ? (
+                <>
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill mx-auto transition-opacity duration-500" />
-                  
-                </> : <div className="w-full h-full flex items-center justify-center">
+                </>
+              ) : currentStation?.tray_id ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center text-slate-600">
+                    <div className="text-3xl xl:text-4xl font-bold mb-4">Loading Part details, please wait...</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center text-slate-600">
                     <div className="text-6xl xl:text-7xl font-bold mb-4">NO PARTS</div>
                     <div className="text-2xl xl:text-3xl">Waiting for parts to be loaded...</div>
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -296,21 +305,30 @@ const RoboticPartsDisplay = () => {
   </div>}
           <div className="flex justify-center items-center w-full">
             <div className="flex justify-evenly items-center w-full max-w-full">
-              {stations.map((station, index) => <div key={station.id} className={cn("flex flex-col items-center space-y-2 transition-all duration-300 flex-1", stationsWithTray[currentStationIndex]?.id === station.id ? "scale-110" : "scale-100")}>
-                  <div className={cn("w-16 h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2", stationsWithTray[currentStationIndex]?.id === station.id ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50" : station.tray_id ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500" : "bg-slate-800 text-slate-500 border-slate-700 opacity-50")}>
+              {stations.map((station, index) => (
+                <div key={station.id} className={cn("flex flex-col items-center space-y-2 transition-all duration-300 flex-1", stationsWithTray[currentStationIndex]?.id === station.id ? "scale-110" : "scale-100")}> 
+                  <div className={cn(
+                    "w-32 h-16 xl:w-40 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2",
+                    stationsWithTray[currentStationIndex]?.id === station.id
+                      ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50"
+                      : station.tray_id
+                      ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500"
+                      : "bg-slate-800 text-slate-500 border-slate-700 opacity-50"
+                  )}>
                     {station.name}
                   </div>
-
                   <div className="text-center">
-                    <div className={cn("text-sm xl:text-base font-medium", stationsWithTray[currentStationIndex]?.id === station.id ? "text-teal-400" : station.tray_id ? "text-slate-300" : "text-slate-600")}>
+                    <div className={cn("text-sm xl:text-base font-medium", stationsWithTray[currentStationIndex]?.id === station.id ? "text-teal-400" : station.tray_id ? "text-slate-300" : "text-slate-600")}> 
                       {station.tray_id || "No Tray"}
                     </div>
                   </div>
-                </div>)}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default RoboticPartsDisplay;
