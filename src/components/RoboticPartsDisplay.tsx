@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import amsLogo from '@/assets/ams-logo.png';
-import appLinkImage from '@/assets/applink.png';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import StationCarousel from './StationCarousel';
+import PartsDisplay from './PartsDisplay';
+import PartsIndicator from './PartsIndicator';
+import NoTraysScreen from './NoTraysScreen';
 interface Part {
   id: string;
   name: string;
@@ -50,6 +51,8 @@ const RoboticPartsDisplay = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showErrorScreen, setShowErrorScreen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const previousStationsRef = useRef<Station[]>([]);
   const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
   const fetchStations = async () => {
     try {
@@ -117,35 +120,81 @@ const RoboticPartsDisplay = () => {
     }, 3000);
     return () => clearInterval(pollInterval);
   }, []);
-  const getStationsWithTray = () => {
+  const getStationsWithTray = useCallback(() => {
     return stations.filter(station => station.tray_id);
-  };
+  }, [stations]);
+
+  // Detect when new trays are added and auto-navigate
+  const handleStationChange = useCallback((newStationIndex: number) => {
+    setIsTransitioning(true);
+    setCurrentStationIndex(newStationIndex);
+    setCurrentPartIndex(0);
+    
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
+  }, []);
+
+  // Auto-navigate to stations with new trays
+  useEffect(() => {
+    const currentStationsWithTray = getStationsWithTray();
+    const previousStationsWithTray = previousStationsRef.current.filter(station => station.tray_id);
+    
+    // Check for new trays added
+    const newTrayStations = currentStationsWithTray.filter(current => 
+      !previousStationsWithTray.some(prev => prev.id === current.id && prev.tray_id === current.tray_id)
+    );
+    
+    if (newTrayStations.length > 0 && !isLoading) {
+      // Auto-navigate to the first station with a new tray
+      const newStationIndex = currentStationsWithTray.findIndex(s => s.id === newTrayStations[0].id);
+      if (newStationIndex !== -1) {
+        console.log(`Auto-navigating to station with new tray: ${newTrayStations[0].name}`);
+        handleStationChange(newStationIndex);
+      }
+    }
+    
+    // Update previous stations reference
+    previousStationsRef.current = [...stations];
+  }, [stations, getStationsWithTray, isLoading, handleStationChange]);
+  // Handle parts display and cycling for current station
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
+    
     const stationsWithTray = getStationsWithTray();
     if (stationsWithTray.length === 0) {
       setDisplayPart(null);
       return;
     }
+
     const validStationIndex = currentStationIndex >= stationsWithTray.length ? 0 : currentStationIndex;
     const currentStation = stationsWithTray[validStationIndex];
+    
     if (!currentStation || !currentStation.tray_id) return;
+
     let intervalId: NodeJS.Timeout;
-    const setupCarousel = async () => {
+
+    const setupPartsDisplay = async () => {
       if (currentStation.parts.length === 0) {
         console.log(`Loading parts for station ${currentStation.name} (${currentStation.tray_id})`);
         const parts = await fetchStationItems(currentStation.tray_id!);
-        setStations(prevStations => prevStations.map(station => station.id === currentStation.id ? {
-          ...station,
-          parts
-        } : station));
+        
+        setStations(prevStations => 
+          prevStations.map(station => 
+            station.id === currentStation.id ? { ...station, parts } : station
+          )
+        );
+
         if (parts.length > 0) {
           setDisplayPart(parts[0]);
           setCurrentPartIndex(0);
         }
+
+        // Start cycling if multiple parts
         if (parts.length > 1) {
           let partIndex = 0;
-          const timePerPart = 10000 / parts.length;
+          const timePerPart = Math.max(8000 / parts.length, 2000); // Minimum 2s per part
+          
           intervalId = setInterval(() => {
             partIndex = (partIndex + 1) % parts.length;
             setCurrentPartIndex(partIndex);
@@ -154,13 +203,16 @@ const RoboticPartsDisplay = () => {
           }, timePerPart);
         }
       } else {
+        // Station already has parts loaded
         if (currentStation.parts.length > 0) {
           const validPartIndex = currentPartIndex >= currentStation.parts.length ? 0 : currentPartIndex;
           setDisplayPart(currentStation.parts[validPartIndex]);
           setCurrentPartIndex(validPartIndex);
+
           if (currentStation.parts.length > 1) {
             let partIndex = validPartIndex;
-            const timePerPart = 10000 / currentStation.parts.length;
+            const timePerPart = Math.max(8000 / currentStation.parts.length, 2000);
+            
             intervalId = setInterval(() => {
               partIndex = (partIndex + 1) % currentStation.parts.length;
               setCurrentPartIndex(partIndex);
@@ -171,19 +223,25 @@ const RoboticPartsDisplay = () => {
         }
       }
     };
-    setupCarousel();
+
+    setupPartsDisplay();
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [currentStationIndex, stations, isLoading, showErrorScreen]);
+  }, [currentStationIndex, stations, isLoading, showErrorScreen, getStationsWithTray]);
+
+  // Auto cycle through stations with trays (slower cycling for better UX)
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
+    
     const stationsWithTray = getStationsWithTray();
     if (stationsWithTray.length <= 1) return;
+
+    console.log(`Setting up station auto-cycle with ${stationsWithTray.length} stations`);
     
-    console.log(`Setting up station carousel with ${stationsWithTray.length} stations`);
     const stationInterval = setInterval(() => {
       setCurrentStationIndex(prev => {
         const currentStationsWithTray = getStationsWithTray();
@@ -191,88 +249,72 @@ const RoboticPartsDisplay = () => {
         
         const nextIndex = (prev + 1) % currentStationsWithTray.length;
         setCurrentPartIndex(0);
-        console.log(`Switched to station ${nextIndex}: ${currentStationsWithTray[nextIndex]?.name}`);
+        console.log(`Auto-switched to station ${nextIndex}: ${currentStationsWithTray[nextIndex]?.name}`);
         return nextIndex;
       });
-    }, 10000);
-    
+    }, 15000); // Increased to 15 seconds for better viewing time
+
     return () => {
-      console.log('Clearing station interval');
+      console.log('Clearing station auto-cycle interval');
       clearInterval(stationInterval);
     };
-  }, [stations, isLoading, showErrorScreen]);
+  }, [stations, isLoading, showErrorScreen, getStationsWithTray]);
   if (isLoading) {
-    return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading stations...</div>
-      </div>;
+    return (
+      <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-2xl xl:text-3xl animate-pulse">Loading stations...</div>
+      </div>
+    );
   }
+
   if (showErrorScreen) {
-    return <div className="h-screen flex flex-col items-center justify-center" style={{
-      backgroundColor: '#DBEAEA'
-    }}>
-        <img src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/LOGO_AMS.png" alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
-        <p className="text-gray-700 text-lg">Network Error or No data found</p>
-      </div>;
+    return (
+      <div className="h-screen flex flex-col items-center justify-center" style={{ backgroundColor: '#DBEAEA' }}>
+        <img 
+          src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/LOGO_AMS.png" 
+          alt="AMS Logo" 
+          className="mb-6 max-w-xs xl:max-w-md max-h-48 xl:max-h-64 object-contain" 
+        />
+        <p className="text-gray-700 text-lg xl:text-xl">Network Error or No data found</p>
+      </div>
+    );
   }
+
   const stationsWithTray = getStationsWithTray();
   const currentStation = stationsWithTray[currentStationIndex];
 
-  // Show no trays screen when no stations have trays
+  // Show enhanced no trays screen when no stations have trays
   if (stationsWithTray.length === 0) {
-    return <div className="h-screen flex flex-col items-center justify-center" style={{
-      backgroundColor: '#E5F0F0'
-    }}>
-        <img src={amsLogo} alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
-        <div className="text-center text-gray-700 text-sm max-w-md px-4">
-          <p>No trays are in Stations Retrieve Tray from App</p>
-          <img src={appLinkImage} alt="App Link" className="inline-block mx-2 w-32 h-32 object-contain pt-4 " />
-          
-        </div>
-      </div>;
+    return <NoTraysScreen />;
   }
-  return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
-      <div className="h-[80%] flex items-center justify-center p-6">
-        <div className="relative w-full h-full">
-          <div className="bg-slate-700 p-0 shadow-2xl border-4 border-slate-600 h-full rounded-3xl">
-            <div className="rounded-3xl overflow-hidden relative h-full w-full bg-white">
-              {displayPart ? <>
-                  <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill mx-auto transition-opacity duration-500" />
-                  
-                </> : <div className="w-full h-full flex items-center justify-center bg-white">
-                  {/* Keep blank - no content */}
-                </div>}
-            </div>
-          </div>
+  return (
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
+      {/* Parts Display Area */}
+      <PartsDisplay
+        parts={currentStation?.parts || []}
+        currentPartIndex={currentPartIndex}
+        isLoading={isTransitioning}
+      />
+
+      {/* Bottom Section with Parts Indicator and Station Carousel */}
+      <div className="h-[20%] p-4 xl:p-6 flex flex-col justify-center">
+        <div className="w-full space-y-4 xl:space-y-6">
+          {/* Parts Indicator */}
+          <PartsIndicator
+            totalParts={currentStation?.parts?.length || 0}
+            currentPartIndex={currentPartIndex}
+            hasTray={!!currentStation?.tray_id}
+          />
+
+          {/* Station Carousel */}
+          <StationCarousel
+            stations={stations}
+            currentStationIndex={currentStationIndex}
+            onStationChange={handleStationChange}
+          />
         </div>
       </div>
-
-      <div className="h-[20%] p-6 flex flex-col justify-center">
-        <div className="w-full">
-         {currentStation?.tray_id && <div className="mb-4 flex justify-center">
-    <div className="flex space-x-2">
-      {(currentStation.parts.length > 0 ? currentStation.parts : Array.from({
-              length: currentPartIndex + 1
-            }) // fallback to show same dot count
-            ).map((_, index) => <div key={index} className={cn("w-3 h-3 rounded-full transition-all duration-300", index === currentPartIndex ? "bg-teal-400 shadow-lg shadow-teal-400/50" : "bg-slate-400")} />)}
     </div>
-  </div>}
-          <div className="flex justify-center items-center w-full">
-            <div className="flex justify-evenly items-center w-full max-w-full">
-              {stations.map((station, index) => <div key={station.id} className={cn("flex flex-col items-center space-y-2 transition-all duration-300 flex-1", stationsWithTray[currentStationIndex]?.id === station.id ? "scale-110" : "scale-100")}>
-                  <div className={cn("w-16 h-16 xl:w-20 xl:h-20 rounded-lg flex items-center justify-center text-2xl xl:text-3xl font-bold transition-all duration-300 border-2", stationsWithTray[currentStationIndex]?.id === station.id ? "bg-teal-600 text-white border-teal-400 shadow-lg shadow-teal-500/50" : station.tray_id ? "bg-slate-600 text-white border-slate-500 hover:bg-slate-500" : "bg-slate-800 text-slate-500 border-slate-700 opacity-50")}>
-                    {station.name}
-                  </div>
-
-                  <div className="text-center">
-                    <div className={cn("text-sm xl:text-base font-medium", stationsWithTray[currentStationIndex]?.id === station.id ? "text-teal-400" : station.tray_id ? "text-slate-300" : "text-slate-600")}>
-                      {station.tray_id || "No Tray"}
-                    </div>
-                  </div>
-                </div>)}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>;
+  );
 };
 export default RoboticPartsDisplay;
