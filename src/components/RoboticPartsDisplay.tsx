@@ -54,7 +54,7 @@ const RoboticPartsDisplay = () => {
   const fetchStations = async () => {
     try {
       console.log('Fetching stations data...');
-      const response = await fetch('https://amsshowcase1.leapmile.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
+      const response = await fetch('https://dev.qikpod.com/showcase/slots?tags=station&order_by_field=id&order_by_type=ASC', {
         headers: {
           'Authorization': `Bearer ${AUTH_TOKEN}`,
           'Content-Type': 'application/json'
@@ -72,44 +72,7 @@ const RoboticPartsDisplay = () => {
         parts: []
       }));
       console.log('Transformed stations:', transformedStations);
-      
-      // Check for newly received trays and auto-slide to them
-      setStations(prevStations => {
-        console.log('Previous stations:', prevStations);
-        console.log('New stations:', transformedStations);
-        
-        const newStationsWithTray = transformedStations.filter(station => station.tray_id);
-        const prevStationsWithTray = prevStations.filter(station => station.tray_id);
-        
-        console.log('Previous stations with tray:', prevStationsWithTray.map(s => `${s.name}:${s.tray_id}`));
-        console.log('New stations with tray:', newStationsWithTray.map(s => `${s.name}:${s.tray_id}`));
-        
-        // Find stations that newly received trays (either new tray_id or station that didn't have tray before)
-        const newlyReceivedTrays = newStationsWithTray.filter(newStation => {
-          const prevStation = prevStations.find(prev => prev.id === newStation.id);
-          const isNewTray = !prevStation || prevStation.tray_id !== newStation.tray_id;
-          console.log(`Station ${newStation.name}: prevTray=${prevStation?.tray_id}, newTray=${newStation.tray_id}, isNew=${isNewTray}`);
-          return isNewTray;
-        });
-        
-        console.log('Newly received trays:', newlyReceivedTrays);
-        
-        // If a station newly received a tray, auto-slide to it immediately
-        if (newlyReceivedTrays.length > 0 && prevStations.length > 0) { // Only auto-slide if not initial load
-          const newStation = newlyReceivedTrays[0];
-          const newStationIndex = newStationsWithTray.findIndex(station => station.id === newStation.id);
-          if (newStationIndex !== -1) {
-            console.log(`Auto-sliding to station ${newStation.name} (index ${newStationIndex}) that received tray ${newStation.tray_id}`);
-            setTimeout(() => {
-              setCurrentStationIndex(newStationIndex);
-              setCurrentPartIndex(0);
-            }, 100); // Small delay to ensure state is properly updated
-          }
-        }
-        
-        return transformedStations;
-      });
-      
+      setStations(transformedStations);
       setError(null);
       setShowErrorScreen(false);
     } catch (err) {
@@ -124,7 +87,7 @@ const RoboticPartsDisplay = () => {
   const fetchStationItems = async (trayId: string): Promise<Part[]> => {
     try {
       console.log(`Fetching items for tray: ${trayId}`);
-      const response = await fetch(`https://amsshowcase1.leapmile.com/showcase/items?tray_id=${trayId}&order_by_field=updated_at&order_by_type=ASC`, {
+      const response = await fetch(`https://dev.qikpod.com/showcase/items?tray_id=${trayId}&order_by_field=updated_at&order_by_type=ASC`, {
         headers: {
           'Authorization': `Bearer ${AUTH_TOKEN}`,
           'Content-Type': 'application/json'
@@ -214,7 +177,7 @@ const RoboticPartsDisplay = () => {
         clearInterval(intervalId);
       }
     };
-  }, [currentStationIndex, stations, isLoading, showErrorScreen]);
+  }, [currentStationIndex, stations.length, isLoading, showErrorScreen]);
   useEffect(() => {
     if (isLoading || showErrorScreen) return;
     const stationsWithTray = getStationsWithTray();
@@ -222,22 +185,19 @@ const RoboticPartsDisplay = () => {
     
     console.log(`Setting up station carousel with ${stationsWithTray.length} stations`);
     const stationInterval = setInterval(() => {
+      console.log(`Switching from station ${currentStationIndex} to next station`);
       setCurrentStationIndex(prev => {
-        const currentStationsWithTray = getStationsWithTray();
-        if (currentStationsWithTray.length === 0) return 0;
-        
-        const nextIndex = (prev + 1) % currentStationsWithTray.length;
+        const nextIndex = (prev + 1) % stationsWithTray.length;
         setCurrentPartIndex(0);
-        console.log(`Switched to station ${nextIndex}: ${currentStationsWithTray[nextIndex]?.name}`);
+        console.log(`Switched to station ${nextIndex}: ${stationsWithTray[nextIndex]?.name}`);
         return nextIndex;
       });
     }, 10000);
-    
     return () => {
       console.log('Clearing station interval');
       clearInterval(stationInterval);
     };
-  }, [stations, isLoading, showErrorScreen]);
+  }, [stations.length, isLoading, showErrorScreen]);
   if (isLoading) {
     return <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading stations...</div>
@@ -275,8 +235,11 @@ const RoboticPartsDisplay = () => {
               {displayPart ? <>
                   <img src={displayPart.imageUrl} alt={displayPart.name} className="w-full h-full object-fill mx-auto transition-opacity duration-500" />
                   
-                </> : <div className="w-full h-full flex items-center justify-center bg-white">
-                  {/* Keep blank - no content */}
+                </> : <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center text-slate-600">
+                    <div className="text-6xl xl:text-7xl font-bold mb-4">NO PARTS</div>
+                    <div className="text-2xl xl:text-3xl">Waiting for parts to be loaded...</div>
+                  </div>
                 </div>}
             </div>
           </div>
