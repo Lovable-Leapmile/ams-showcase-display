@@ -72,7 +72,33 @@ const RoboticPartsDisplay = () => {
         parts: []
       }));
       console.log('Transformed stations:', transformedStations);
-      setStations(transformedStations);
+      
+      // Check for newly received trays and auto-slide to them
+      setStations(prevStations => {
+        const newStationsWithTray = transformedStations.filter(station => station.tray_id);
+        const prevStationsWithTray = prevStations.filter(station => station.tray_id);
+        
+        // Find stations that newly received trays
+        const newlyReceivedTrays = newStationsWithTray.filter(newStation => 
+          !prevStationsWithTray.some(prevStation => 
+            prevStation.id === newStation.id && prevStation.tray_id === newStation.tray_id
+          )
+        );
+        
+        // If a station newly received a tray, auto-slide to it
+        if (newlyReceivedTrays.length > 0) {
+          const newStation = newlyReceivedTrays[0];
+          const newStationIndex = newStationsWithTray.findIndex(station => station.id === newStation.id);
+          if (newStationIndex !== -1) {
+            console.log(`Auto-sliding to station ${newStation.name} that received tray ${newStation.tray_id}`);
+            setCurrentStationIndex(newStationIndex);
+            setCurrentPartIndex(0);
+          }
+        }
+        
+        return transformedStations;
+      });
+      
       setError(null);
       setShowErrorScreen(false);
     } catch (err) {
