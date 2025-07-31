@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import amsLogo from '@/assets/ams-logo.png';
-import appLinkImage from '@/assets/applink.png';
 interface Part {
   id: string;
   name: string;
@@ -261,7 +260,7 @@ const RoboticPartsDisplay = () => {
         <img src={amsLogo} alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
         <div className="text-center text-gray-700 text-sm max-w-md px-4">
           <p>No trays are in Stations Retrieve Tray from App</p>
-          <img src={appLinkImage} alt="App Link" className="inline-block mx-2 w-32 h-32 object-contain pt-4 " />
+          <img src="https://ams-bucket.blr1.digitaloceanspaces.com/applink_QR.png" alt="App Link" className="inline-block mx-2 w-64 h-64 object-contain pt-4 " />
           
         </div>
       </div>;
