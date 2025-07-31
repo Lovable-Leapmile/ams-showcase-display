@@ -255,11 +255,48 @@ const RoboticPartsDisplay = () => {
   // Show no trays screen when no stations have trays
   if (stationsWithTray.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center" style={{ backgroundColor: '#E5F0F0' }}>
-        <img src={amsLogo} alt="AMS Logo" className="mb-6 max-w-xs max-h-48 object-contain" />
-        <div className="text-center text-gray-700 text-sm max-w-md px-4">
-          <p>No trays are in Stations Retrieve Tray from App</p>
-          <img src="https://ams-bucket.blr1.digitaloceanspaces.com/applink_QR.png" alt="App Link" className="inline-block mx-2 w-64 h-64 object-contain pt-4 " />
+      <div className="h-screen flex flex-col items-center justify-center bg-[#E5F0F0]">
+        <img
+          src={amsLogo}
+          alt="AMS Logo"
+          className="
+            mb-8
+            w-[44vw] max-w-[800px] min-w-[220px]
+            md:w-[32vw] md:max-w-[600px]
+            xl:w-[26vw] xl:max-w-[900px]
+            2xl:w-[22vw] 2xl:max-w-[1200px]
+            h-auto
+            object-contain
+            transition-all
+          "
+        />
+        <div className="text-center text-gray-700 px-4">
+          <p
+            className="
+              font-normal
+              text-base
+              md:text-lg
+              lg:text-xl
+              xl:text-2xl
+              mb-6
+              transition-all
+            "
+          >
+            No Trays are in Stations. Retrieve Tray from App
+          </p>
+          <img
+            src="https://ams-bucket.blr1.digitaloceanspaces.com/applink_QR.png"
+            alt="App Link"
+            className="
+              inline-block mx-2
+              w-40 h-40
+              md:w-56 md:h-56
+              xl:w-72 xl:h-72
+              2xl:w-80 2xl:h-80
+              object-contain pt-4
+              transition-all
+            "
+          />
         </div>
       </div>
     );
